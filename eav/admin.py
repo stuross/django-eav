@@ -94,7 +94,7 @@ class BaseEntityInline(InlineModelAdmin):
         return [(None, {'fields': form.fields.keys()})]
 
 class AttributeAdmin(ModelAdmin):
-    list_display = ('name', 'slug', 'datatype', 'description', 'site')
+    list_display = ('name', 'slug', 'datatype', 'description', 'type')
     list_filter = ['site']
     prepopulated_fields = {'slug': ('name',)}
 

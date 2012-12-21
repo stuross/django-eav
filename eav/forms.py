@@ -81,9 +81,14 @@ class BaseDynamicEntityForm(ModelForm):
                 enums = attribute.get_choices() \
                                  .values_list('id', 'value')
 
-                choices = [('', '-----')] + list(enums)
+                if attribute.widget == 'radio_select':  
+                    defaults.update({'widget': widgets.RadioSelect})
+                    choices = list(enums)
+                else:
+                    choices = [('', '-----')] + list(enums)
 
                 defaults.update({'choices': choices})
+
                 if value:
                     defaults.update({'initial': value.pk})
 

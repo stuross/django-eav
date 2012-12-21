@@ -173,6 +173,11 @@ class Attribute(models.Model):
         (TYPE_OBJECT, _(u"Django Object")),
         (TYPE_ENUM, _(u"Multiple Choice")),
     )
+    
+    WIDGET_CHOICES = (
+        ('radio_select', 'Radio Select'),
+
+    )
 
     name = models.CharField(_(u"name"), max_length=100,
                             help_text=_(u"User-friendly attribute name"))
@@ -183,14 +188,16 @@ class Attribute(models.Model):
     slug = EavSlugField(_(u"slug"), max_length=50, db_index=True,
                           help_text=_(u"Short unique attribute label"))
 
-    description = models.CharField(_(u"description"), max_length=256,
+    description = models.TextField(_(u"description"),
                                      blank=True, null=True,
                                      help_text=_(u"Short description"))
 
     enum_group = models.ForeignKey(EnumGroup, verbose_name=_(u"choice group"),
                                    blank=True, null=True)
 
-    type = models.CharField(_(u"type"), max_length=20, blank=True, null=True)
+    type = models.CharField(_(u"type"), max_length=60, blank=True, null=True)
+
+    widget = models.CharField(_(u"widget"), max_length=20, choices=WIDGET_CHOICES,  blank=True, null=True)
 
     order = models.IntegerField(default=100)
 
