@@ -351,10 +351,11 @@ class Value(models.Model):
     entity = generic.GenericForeignKey(ct_field='entity_ct',
                                        fk_field='entity_id')
 
+    value_input = models.TextField(blank=True, null=True)
     value_text = models.TextField(blank=True, null=True)
     value_float = models.FloatField(blank=True, null=True)
     value_int = models.IntegerField(blank=True, null=True)
-    value_date = models.DateTimeField(blank=True, null=True)
+    value_date = models.DateField(blank=True, null=True)
     value_bool = models.NullBooleanField(blank=True, null=True)
     value_enum = models.ForeignKey(EnumValue, blank=True, null=True,
                                    related_name='eav_values')
