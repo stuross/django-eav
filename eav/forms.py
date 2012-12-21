@@ -31,6 +31,7 @@ from copy import deepcopy
 from django.forms import BooleanField, CharField, DateTimeField, FloatField, \
                          IntegerField, ModelForm, ChoiceField, ValidationError
 from django.contrib.admin.widgets import AdminSplitDateTime
+from django.forms import widgets
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -46,6 +47,7 @@ class BaseDynamicEntityForm(ModelForm):
     '''
 
     FIELD_CLASSES = {
+        'input': CharField,
         'text': CharField,
         'float': FloatField,
         'int': IntegerField,
@@ -87,6 +89,8 @@ class BaseDynamicEntityForm(ModelForm):
 
             elif datatype == attribute.TYPE_DATE:
                 defaults.update({'widget': AdminSplitDateTime})
+            elif datatype == attribute.TYPE_TEXT:
+                defaults.update({'widget': widgets.Textarea})
             elif datatype == attribute.TYPE_OBJECT:
                 continue
 

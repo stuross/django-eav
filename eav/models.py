@@ -154,6 +154,7 @@ class Attribute(models.Model):
         ordering = ['name']
         unique_together = ('site', 'slug')
 
+    TYPE_INPUT = 'input'
     TYPE_TEXT = 'text'
     TYPE_FLOAT = 'float'
     TYPE_INT = 'int'
@@ -163,6 +164,7 @@ class Attribute(models.Model):
     TYPE_ENUM = 'enum'
 
     DATATYPE_CHOICES = (
+        (TYPE_INPUT, _(u"Input")),
         (TYPE_TEXT, _(u"Text")),
         (TYPE_FLOAT, _(u"Float")),
         (TYPE_INT, _(u"Integer")),
@@ -218,6 +220,7 @@ class Attribute(models.Model):
            validators to return as well as the default, built-in one.
         '''
         DATATYPE_VALIDATORS = {
+            'input': validate_text,
             'text': validate_text,
             'float': validate_float,
             'int': validate_int,
