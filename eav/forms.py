@@ -28,7 +28,7 @@ Classes
 '''
 from copy import deepcopy
 
-from django.forms import BooleanField, CharField, DateTimeField, FloatField, \
+from django.forms import BooleanField, CharField, DateField, FloatField, \
                          IntegerField, ModelForm, ChoiceField, ValidationError
 from django.contrib.admin.widgets import AdminSplitDateTime
 from django.forms import widgets
@@ -51,7 +51,7 @@ class BaseDynamicEntityForm(ModelForm):
         'text': CharField,
         'float': FloatField,
         'int': IntegerField,
-        'date': DateTimeField,
+        'date': DateField,
         'bool': BooleanField,
         'enum': ChoiceField,
     }
@@ -87,8 +87,6 @@ class BaseDynamicEntityForm(ModelForm):
                 if value:
                     defaults.update({'initial': value.pk})
 
-            elif datatype == attribute.TYPE_DATE:
-                defaults.update({'widget': AdminSplitDateTime})
             elif datatype == attribute.TYPE_TEXT:
                 defaults.update({'widget': widgets.Textarea})
             elif datatype == attribute.TYPE_OBJECT:

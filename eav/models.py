@@ -151,7 +151,7 @@ class Attribute(models.Model):
     '''
 
     class Meta:
-        ordering = ['name']
+        ordering = ['order']
         unique_together = ('site', 'slug')
 
     TYPE_INPUT = 'input'
@@ -191,6 +191,8 @@ class Attribute(models.Model):
                                    blank=True, null=True)
 
     type = models.CharField(_(u"type"), max_length=20, blank=True, null=True)
+
+    order = models.IntegerField(default=100)
 
     @property
     def help_text(self):
