@@ -215,6 +215,8 @@ class Attribute(models.Model):
 
     required = models.BooleanField(_(u"required"), default=False)
 
+    important = models.BooleanField(_(u"important"), default=False)
+
     objects = models.Manager()
     on_site = CurrentSiteManager()
 
