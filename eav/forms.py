@@ -70,7 +70,7 @@ class BaseDynamicEntityForm(ModelForm):
             value = getattr(self.entity, attribute.slug)
 
             defaults = {
-                'label': attribute.name.capitalize(),
+                'label': attribute.name,
                 'required': attribute.required,
                 'help_text': attribute.help_text,
                 'validators': attribute.get_validators(),
