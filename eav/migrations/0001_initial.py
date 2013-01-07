@@ -35,11 +35,13 @@ class Migration(SchemaMigration):
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
             ('site', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['sites.Site'])),
+            ('slug', self.gf('eav.fields.EavSlugField')(max_length=50)),
             ('description', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('enum_group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eav.EnumGroup'], null=True, blank=True)),
             ('type', self.gf('django.db.models.fields.CharField')(max_length=60, null=True, blank=True)),
             ('widget', self.gf('django.db.models.fields.CharField')(max_length=20, null=True, blank=True)),
             ('order', self.gf('django.db.models.fields.IntegerField')(default=100)),
+            ('datatype', self.gf('eav.fields.EavDatatypeField')(max_length=6)),
             ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
             ('modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
             ('required', self.gf('django.db.models.fields.BooleanField')(default=False)),
@@ -70,14 +72,6 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('eav', ['Value'])
 
-        # Adding M2M table for field value_multi_enum on 'Value'
-        db.create_table('eav_value_value_multi_enum', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('value', models.ForeignKey(orm['eav.value'], null=False)),
-            ('enumvalue', models.ForeignKey(orm['eav.enumvalue'], null=False))
-        ))
-        db.create_unique('eav_value_value_multi_enum', ['value_id', 'enumvalue_id'])
-
 
     def backwards(self, orm):
         # Removing unique constraint on 'Attribute', fields ['site', 'slug']
@@ -98,9 +92,6 @@ class Migration(SchemaMigration):
         # Deleting model 'Value'
         db.delete_table('eav_value')
 
-        # Removing M2M table for field value_multi_enum on 'Value'
-        db.delete_table('eav_value_value_multi_enum')
-
 
     models = {
         'contenttypes.contenttype': {
@@ -113,6 +104,7 @@ class Migration(SchemaMigration):
         'eav.attribute': {
             'Meta': {'ordering': "['order']", 'unique_together': "(('site', 'slug'),)", 'object_name': 'Attribute'},
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            'datatype': ('eav.fields.EavDatatypeField', [], {'max_length': '6'}),
             'description': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'enum_group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eav.EnumGroup']", 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -122,6 +114,7 @@ class Migration(SchemaMigration):
             'order': ('django.db.models.fields.IntegerField', [], {'default': '100'}),
             'required': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'site': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['sites.Site']"}),
+            'slug': ('eav.fields.EavSlugField', [], {'max_length': '50'}),
             'type': ('django.db.models.fields.CharField', [], {'max_length': '60', 'null': 'True', 'blank': 'True'}),
             'widget': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'})
         },
@@ -152,7 +145,6 @@ class Migration(SchemaMigration):
             'value_float': ('django.db.models.fields.FloatField', [], {'null': 'True', 'blank': 'True'}),
             'value_input': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'value_int': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'value_multi_enum': ('django.db.models.fields.related.ManyToManyField', [], {'blank': 'True', 'related_name': "'eav_multi_values'", 'null': 'True', 'symmetrical': 'False', 'to': "orm['eav.EnumValue']"}),
             'value_text': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
         },
         'sites.site': {

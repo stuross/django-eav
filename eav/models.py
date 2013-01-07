@@ -46,6 +46,10 @@ from django.conf import settings
 
 from .validators import *
 from .fields import EavSlugField, EavDatatypeField
+from south.modelsinspector import add_introspection_rules
+
+add_introspection_rules([], ["^eav\.fields\.EavDatatypeField"])
+add_introspection_rules([], ["^eav\.fields\.EavSlugField"])
 
 
 class EnumValue(models.Model):
