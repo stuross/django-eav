@@ -166,6 +166,7 @@ class Attribute(models.Model):
     TYPE_BOOLEAN = 'bool'
     TYPE_OBJECT = 'object'
     TYPE_ENUM = 'enum'
+    TYPE_MULTI_ENUM = 'multi_enum'
 
     DATATYPE_CHOICES = (
         (TYPE_INPUT, _(u"Input")),
@@ -176,6 +177,7 @@ class Attribute(models.Model):
         (TYPE_BOOLEAN, _(u"True / False")),
         (TYPE_OBJECT, _(u"Django Object")),
         (TYPE_ENUM, _(u"Multiple Choice")),
+        (TYPE_MULTI_ENUM, _(u"Multiple Select Choice")),
     )
     
     WIDGET_CHOICES = (
@@ -209,7 +211,7 @@ class Attribute(models.Model):
     def help_text(self):
         return self.description
 
-    datatype = EavDatatypeField(_(u"data type"), max_length=6,
+    datatype = EavDatatypeField(_(u"data type"), max_length=10,
                                 choices=DATATYPE_CHOICES)
 
     created = models.DateTimeField(_(u"created"), default=datetime.now,
@@ -243,6 +245,7 @@ class Attribute(models.Model):
             'bool': validate_bool,
             'object': validate_object,
             'enum': validate_enum,
+            'multi_enum': validate_multi_enum,
         }
 
         validation_function = DATATYPE_VALIDATORS[self.datatype]
@@ -257,6 +260,13 @@ class Attribute(models.Model):
             validator(value)
         if self.datatype == self.TYPE_ENUM:
             if value not in self.enum_group.enums.all():
+                raise ValidationError(_(u"%(enum)s is not a valid choice "
+                                        u"for %(attr)s") % \
+                                       {'enum': value, 'attr': self})
+        elif self.datatype == self.TYPE_MULTI_ENUM:
+            values = set(value)
+            enums = set(self.enum_group.enums.all())
+            if values and not list(enums.intersection(values)):
                 raise ValidationError(_(u"%(enum)s is not a valid choice "
                                         u"for %(attr)s") % \
                                        {'enum': value, 'attr': self})
@@ -281,8 +291,7 @@ class Attribute(models.Model):
             raise ValidationError(_(
                 u"You must set the choice group for multiple choice" \
                 u"attributes"))
-
-        if self.datatype != self.TYPE_ENUM and self.enum_group:
+        if self.datatype not in [self.TYPE_ENUM, self.TYPE_MULTI_ENUM] and self.enum_group:
             raise ValidationError(_(
                 u"You can only assign a choice group to multiple choice " \
                 u"attributes"))
@@ -292,7 +301,7 @@ class Attribute(models.Model):
         Returns a query set of :class:`EnumValue` objects for this attribute.
         Returns None if the datatype of this attribute is not *TYPE_ENUM*.
         '''
-        if not self.datatype == Attribute.TYPE_ENUM:
+        if self.datatype not in [Attribute.TYPE_ENUM, Attribute.TYPE_MULTI_ENUM]:
             return None
         return self.enum_group.enums.all()
 
@@ -365,6 +374,8 @@ class Value(models.Model):
     value_bool = models.NullBooleanField(blank=True, null=True)
     value_enum = models.ForeignKey(EnumValue, blank=True, null=True,
                                    related_name='eav_values')
+    value_multi_enum = models.ManyToManyField(EnumValue, blank=True, null=True,
+                                   related_name='eav_multi_values')
 
     generic_value_id = models.IntegerField(blank=True, null=True)
     generic_value_ct = models.ForeignKey(ContentType, blank=True, null=True,
@@ -453,6 +464,7 @@ class Entity(object):
                 return self.get_value_by_attribute(attribute).value
             except Value.DoesNotExist:
                 return None
+
         return getattr(super(Entity, self), name)
 
     def get_all_attributes(self):

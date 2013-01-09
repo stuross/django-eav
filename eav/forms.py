@@ -29,7 +29,7 @@ Classes
 from copy import deepcopy
 
 from django.forms import BooleanField, CharField, DateField, FloatField, \
-                         IntegerField, ModelForm, ChoiceField, ValidationError
+                         IntegerField, ModelForm, MultipleChoiceField, ChoiceField, ValidationError
 from django.contrib.admin.widgets import AdminSplitDateTime
 from django.forms import widgets
 from django.utils.translation import ugettext_lazy as _
@@ -54,6 +54,7 @@ class BaseDynamicEntityForm(ModelForm):
         'date': DateField,
         'bool': BooleanField,
         'enum': ChoiceField,
+        'multi_enum': MultipleChoiceField,
     }
 
     def __init__(self, data=None, *args, **kwargs):
@@ -77,11 +78,13 @@ class BaseDynamicEntityForm(ModelForm):
             }
 
             datatype = attribute.datatype
-            if datatype == attribute.TYPE_ENUM:
+            if datatype in [attribute.TYPE_ENUM, attribute.TYPE_MULTI_ENUM]:
                 enums = attribute.get_choices() \
                                  .values_list('id', 'value')
-
-                if attribute.widget == 'radio_select':  
+                if datatype == attribute.TYPE_MULTI_ENUM:
+                    defaults.update({'widget': widgets.CheckboxSelectMultiple})
+                    choices = list(enums)
+                elif attribute.widget == 'radio_select':  
                     defaults.update({'widget': widgets.RadioSelect})
                     choices = list(enums)
                 else:
@@ -90,7 +93,13 @@ class BaseDynamicEntityForm(ModelForm):
                 defaults.update({'choices': choices})
 
                 if value:
-                    defaults.update({'initial': value.pk})
+                    if attribute.TYPE_MULTI_ENUM:
+                        try:
+                            defaults.update({'initial': [v.pk for v in value.all()]})
+                        except Exception:
+                            defaults.update({'initial': value.pk})
+                    else:
+                        defaults.update({'initial': value.pk})
 
             elif datatype == attribute.TYPE_TEXT:
                 defaults.update({'widget': widgets.Textarea})
@@ -101,7 +110,7 @@ class BaseDynamicEntityForm(ModelForm):
             self.fields[attribute.slug] = MappedField(**defaults)
 
             # fill initial data (if attribute was already defined)
-            if value and not datatype == attribute.TYPE_ENUM: #enum done above
+            if value and datatype not in [attribute.TYPE_ENUM, attribute.TYPE_MULTI_ENUM]: #enum done above
                 self.initial[attribute.slug] = value
 
     def save(self, commit=True):
@@ -128,8 +137,12 @@ class BaseDynamicEntityForm(ModelForm):
                     value = attribute.enum_group.enums.get(pk=value)
                 else:
                     value = None
-
-            setattr(self.entity, attribute.slug, value)
+                setattr(self.entity, attribute.slug, value)
+            elif attribute.datatype == attribute.TYPE_MULTI_ENUM:
+                v = attribute.enum_group.enums.filter(pk__in=value)
+                setattr(self.entity, attribute.slug, v)
+            else:
+                setattr(self.entity, attribute.slug, value)
 
         # save entity and its attributes
         if commit:

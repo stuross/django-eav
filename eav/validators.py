@@ -109,3 +109,5 @@ def validate_enum(value):
     if not value.pk:
         raise ValidationError(_(u"EnumValue has not been saved yet"))
     '''
+def validate_multi_enum(value):
+    pass
