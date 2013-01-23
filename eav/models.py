@@ -264,7 +264,7 @@ class Attribute(models.Model):
                                         u"for %(attr)s") % \
                                        {'enum': value, 'attr': self})
         elif self.datatype == self.TYPE_MULTI_ENUM:
-            values = set(value)
+            values = set(value.all())
             enums = set(self.enum_group.enums.all())
             if values and not list(enums.intersection(values)):
                 raise ValidationError(_(u"%(enum)s is not a valid choice "
@@ -334,7 +334,13 @@ class Attribute(models.Model):
             return
 
         if value != value_obj.value:
-            value_obj.value = value
+            if self.datatype == 'multi_enum':
+                for v in value_obj.value.all():
+                    if v not in value:
+                        value_obj.value.remove(v)
+                value_obj.value.add(*value)
+            else:
+                value_obj.value = value
             value_obj.save()
 
     def __unicode__(self):
@@ -481,7 +487,10 @@ class Entity(object):
         for attribute in self.get_all_attributes():
             if hasattr(self, attribute.slug):
                 attribute_value = getattr(self, attribute.slug)
-                attribute.save_value(self.model, attribute_value)
+                if attribute.datatype == Attribute.TYPE_MULTI_ENUM:
+                    attribute.save_value(self.model, attribute_value.all())
+                else:
+                    attribute.save_value(self.model, attribute_value)
 
     def validate_attributes(self):
         '''
