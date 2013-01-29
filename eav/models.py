@@ -432,6 +432,11 @@ class Value(models.Model):
     def __unicode__(self):
         return u"%s - %s: \"%s\"" % (self.entity, self.attribute.name,
                                      self.value)
+    def __getattr__(self, name):
+        if not name.startswith('_'):
+            if name == self.entity.__class__.__name__:
+                return self.entity
+        return getattr(super(Value, self), name)
 
 
 class Entity(object):
