@@ -66,8 +66,12 @@ class BaseDynamicEntityForm(ModelForm):
     def _build_dynamic_fields(self):
         # reset form fields
         self.fields = deepcopy(self.base_fields)
+        try:
+            attributes = self.attributes
+        except Exception:
+            attributes = self.entity.get_all_attributes()
 
-        for attribute in self.entity.get_all_attributes():
+        for attribute in attributes:
             value = getattr(self.entity, attribute.slug)
 
             defaults = {
